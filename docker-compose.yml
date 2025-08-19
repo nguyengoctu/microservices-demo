@@ -1,0 +1,178 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-service
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices-demo
+
+  ad-service:
+    build:
+      context: ./src/adservice
+      dockerfile: Dockerfile
+    container_name: ad-service
+    ports:
+      - "7007:7007"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7007
+      - DISABLE_PROFILER=1
+
+  cart-service:
+    build:
+      context: ./src/cartservice
+      dockerfile: Dockerfile
+    container_name: cart-service
+    ports: 
+      - "7006:7006"
+    depends_on:
+      - redis
+    networks:
+      - microservices-demo
+    environment:
+      - ASPNETCORE_URLS=http://*:7006
+      - REDIS_ADDR=redis-service:6379
+      - DISABLE_PROFILER=1
+
+  product-catalog-service:
+    build:
+      context: ./src/productcatalogservice
+      dockerfile: Dockerfile
+    container_name: product-catalog-service
+    ports:
+      - "7002:7002"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7002
+      - DISABLE_PROFILER=1
+  
+  recommendation-service:
+    build:
+      context: ./src/recommendationservice
+      dockerfile: Dockerfile
+    container_name: recommendation-service
+    ports:
+      - "7005:7005"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7005
+      - DISABLE_PROFILER=1
+      - PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
+    depends_on:
+      - product-catalog-service
+    
+  shipping-service:
+    build:
+      context: ./src/shippingservice
+      dockerfile: Dockerfile
+    container_name: shipping-service
+    ports:
+      - "7003:7003"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7003
+      - DISABLE_PROFILER=1
+  
+  currency-service:
+    build:
+      context: ./src/currencyservice
+      dockerfile: Dockerfile
+    container_name: currency-service
+    ports:
+      - "7000:7000"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7000
+      - DISABLE_PROFILER=1
+
+  payment-service:
+    build:
+      context: ./src/paymentservice
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "7001:7001"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7001
+      - DISABLE_PROFILER=1
+
+  email-service:
+    build:
+      context: ./src/emailservice
+      dockerfile: Dockerfile
+    container_name: email-service
+    ports:
+      - "7004:7004"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7004
+      - DISABLE_PROFILER=1
+
+  checkout-service:
+    build:
+      context: ./src/checkoutservice
+      dockerfile: Dockerfile
+    container_name: checkout-service
+    ports:
+      - "7008:7008"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7008
+      - DISABLE_PROFILER=1
+      - CURRENCY_SERVICE_ADDR=currency-service:7000
+      - PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
+      - SHIPPING_SERVICE_ADDR=shipping-service:7003
+      - EMAIL_SERVICE_ADDR=email-service:7004
+      - CART_SERVICE_ADDR=cart-service:7006
+      - PAYMENT_SERVICE_ADDR=payment-service:7001
+    depends_on:
+      - product-catalog-service
+      - shipping-service
+      - email-service
+      - recommendation-service
+      - cart-service
+      - payment-service
+  
+  frontend-service:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: frontend-service
+    ports:
+      - "7009:7009"
+    networks:
+      - microservices-demo
+    environment:
+      - PORT=7009
+      - DISABLE_PROFILER=1
+      - CURRENCY_SERVICE_ADDR=currency-service:7000
+      - PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
+      - SHIPPING_SERVICE_ADDR=shipping-service:7003
+      - RECOMMENDATION_SERVICE_ADDR=recommendation-service:7005
+      - CART_SERVICE_ADDR=cart-service:7006
+      - AD_SERVICE_ADDR=ad-service:7007
+      - CHECKOUT_SERVICE_ADDR=checkout-service:7008
+      - SHOPPING_ASSISTANT_SERVICE_ADDR=localhost:9999
+    depends_on:
+      - currency-service
+      - product-catalog-service
+      - shipping-service
+      - recommendation-service
+      - cart-service
+      - ad-service
+      - checkout-service
+
+networks:
+  microservices-demo:
+    driver: bridge
