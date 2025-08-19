@@ -90,6 +90,16 @@ class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
         return health_pb2.HealthCheckResponse(
             status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)
 
+def test_catalog_connection(stub):
+    """Test using existing stub"""
+    try:
+        logger.info('Testing connection to Product Catalog...')
+        response = stub.ListProducts(demo_pb2.Empty(), timeout=5.0)
+        logger.info(f'✅ Successfully connected! Found {len(response.products)} products')
+        return True
+    except grpc.RpcError as e:
+        logger.error(f'❌ Failed to connect: {e.code()} - {e.details()}')
+        return False
 
 if __name__ == "__main__":
     logger.info("initializing recommendationservice")
@@ -139,6 +149,9 @@ if __name__ == "__main__":
     service = RecommendationService()
     demo_pb2_grpc.add_RecommendationServiceServicer_to_server(service, server)
     health_pb2_grpc.add_HealthServicer_to_server(service, server)
+
+    if test_catalog_connection(product_catalog_stub):
+      logger.info('✅ Connection test passed!')
 
     # start server
     logger.info("listening on port: " + port)
