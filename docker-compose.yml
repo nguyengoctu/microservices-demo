@@ -1,6 +1,8 @@
 version: '3.8'
 services:
   redis:
+    labels:
+      - "project=microservices-demo"
     image: redis:7-alpine
     container_name: redis-service
     ports:
@@ -9,6 +11,8 @@ services:
       - microservices-demo
 
   ad-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/adservice
       dockerfile: Dockerfile
@@ -22,6 +26,8 @@ services:
       - DISABLE_PROFILER=1
 
   cart-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/cartservice
       dockerfile: Dockerfile
@@ -38,6 +44,8 @@ services:
       - DISABLE_PROFILER=1
 
   product-catalog-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/productcatalogservice
       dockerfile: Dockerfile
@@ -51,6 +59,8 @@ services:
       - DISABLE_PROFILER=1
   
   recommendation-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/recommendationservice
       dockerfile: Dockerfile
@@ -67,6 +77,8 @@ services:
       - product-catalog-service
     
   shipping-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/shippingservice
       dockerfile: Dockerfile
@@ -80,6 +92,8 @@ services:
       - DISABLE_PROFILER=1
   
   currency-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/currencyservice
       dockerfile: Dockerfile
@@ -93,6 +107,8 @@ services:
       - DISABLE_PROFILER=1
 
   payment-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/paymentservice
       dockerfile: Dockerfile
@@ -106,6 +122,8 @@ services:
       - DISABLE_PROFILER=1
 
   email-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/emailservice
       dockerfile: Dockerfile
@@ -119,6 +137,8 @@ services:
       - DISABLE_PROFILER=1
 
   checkout-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/checkoutservice
       dockerfile: Dockerfile
@@ -145,6 +165,8 @@ services:
       - payment-service
   
   frontend-service:
+    labels:
+      - "project=microservices-demo"
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
