@@ -1,11 +1,16 @@
 pipeline {
     agent any 
+    environment {
+        TAG = "${params.TAG}"
+    }
+
     stages {
         stage('Check Environment') {
             steps {
                 sh '''
                     echo "DOCKER_USER from Jenkins: [$DOCKER_USER]"
                     env | grep DOCKER || echo "No DOCKER vars"
+                    echo "TAG: $TAG"
                 '''
             }
         }
@@ -15,17 +20,20 @@ pipeline {
                 sh 'docker ps'
             }
         }
-        stage('Build frontend') {
+        stage('Build') {
             steps {
-                sh 'docker build -t ${DOCKER_USER}/frontend:${BUILD_NUMBER} ./src/frontend'
+                sh '''#!/bin/bash
+                    sed -i "s/DOCKER_USER/$DOCKER_USER/g" docker-compose.yml
+                    sed -i "s/TAG/$TAG/g" docker-compose.yml
+                    cat docker-compose.yml
+                '''
+                sh 'docker-compose build'
             }
         }
         stage('Push to Registry') {
             steps {
                 sh '''
-                    docker push $DOCKER_USER/frontend:${BUILD_NUMBER}
-                    docker tag $DOCKER_USER/frontend:${BUILD_NUMBER} $DOCKER_USER/frontend:latest
-                    docker push $DOCKER_USER/frontend:latest
+                    docker-compose push
                 '''
             }
         }
