@@ -42,6 +42,7 @@ pipeline {
             steps {
                 sh '''
                     scp -o StrictHostKeyChecking=no -P 2223 docker-compose.yml $DEPLOY_USER@$DEPLOY_HOST:deploy/docker-compose.yml
+                    ssh -o StrictHostKeyChecking=no -p 2223 $DEPLOY_USER@$DEPLOY_HOST "cd deploy && docker compose down --remove-orphans"
                     ssh -o StrictHostKeyChecking=no -p 2223 $DEPLOY_USER@$DEPLOY_HOST "cd deploy && docker compose pull && docker compose up -d"
                 '''
             }
