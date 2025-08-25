@@ -3,8 +3,14 @@ pipeline {
     environment {
         TAG = "${params.TAG}"
     }
-
     stages {
+        stage('Set Build Name') {
+            steps {
+                script {
+                    currentBuild.displayName = "${params.TAG}"
+                }
+            }
+        }
         stage('Check Environment') {
             steps {
                 sh '''
@@ -12,12 +18,6 @@ pipeline {
                     env | grep DOCKER || echo "No DOCKER vars"
                     echo "TAG: $TAG"
                 '''
-            }
-        }
-        stage('Test connectivity') {
-            steps {
-                sh 'docker --version'
-                sh 'docker ps'
             }
         }
         stage('Build') {
@@ -42,6 +42,7 @@ pipeline {
             steps {
                 sh '''
                     scp -o StrictHostKeyChecking=no -P 2223 docker-compose.yml $DEPLOY_USER@$DEPLOY_HOST:deploy/docker-compose.yml
+                    ssh -o StrictHostKeyChecking=no -p 2223 $DEPLOY_USER@$DEPLOY_HOST "cd deploy && docker compose down --remove-orphans"
                     ssh -o StrictHostKeyChecking=no -p 2223 $DEPLOY_USER@$DEPLOY_HOST "cd deploy && docker compose pull && docker compose up -d"
                 '''
             }
