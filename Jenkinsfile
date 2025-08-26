@@ -3,11 +3,16 @@ pipeline {
     environment {
         TAG = "${params.TAG}"
     }
-
     stages {
+        stage('Set Build Name') {
+            steps {
+                script {
+                    currentBuild.displayName = "${params.TAG}"
+                }
+            }
+        }
         stage('Check Environment') {
             steps {
-                currentBuild.displayName = "${params.TAG}"
                 sh '''
                     echo "DOCKER_USER from Jenkins: [$DOCKER_USER]"
                     env | grep DOCKER || echo "No DOCKER vars"
