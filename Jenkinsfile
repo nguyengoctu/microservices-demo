@@ -7,17 +7,12 @@ pipeline {
     stages {
         stage('Check Environment') {
             steps {
+                currentBuild.displayName = "${params.TAG}"
                 sh '''
                     echo "DOCKER_USER from Jenkins: [$DOCKER_USER]"
                     env | grep DOCKER || echo "No DOCKER vars"
                     echo "TAG: $TAG"
                 '''
-            }
-        }
-        stage('Test connectivity') {
-            steps {
-                sh 'docker --version'
-                sh 'docker ps'
             }
         }
         stage('Build') {
