@@ -1,0 +1,38 @@
+# currency-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: currency-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: currency-service
+  template:
+    metadata:
+      labels:
+        app: currency-service
+    spec:
+      containers:
+      - name: currency-service
+        image: nguyengoctu/currency-service:1.0.0
+        ports:
+        - containerPort: 7000
+        env:
+        - name: PORT
+          value: "7000"
+        - name: DISABLE_PROFILER
+          value: "1"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: currency-service
+spec:
+  selector:
+    app: currency-service
+  ports:
+    - port: 7000
+      targetPort: 7000
+  type: ClusterIP
