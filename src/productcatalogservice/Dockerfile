@@ -5,10 +5,12 @@ WORKDIR /app
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./
-RUN go mod download
 
 # Copy the source code
 COPY . .
+
+# Download dependencies and tidy
+RUN go mod tidy
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -o productcatalogservice .
@@ -22,6 +24,7 @@ ENV PORT=7002
 # Copy the binary from the builder
 COPY --from=builder /app/productcatalogservice .
 COPY products.json .
+COPY schema.sql .
 
 # Expose service port (change if needed)
 EXPOSE 7002
