@@ -5,10 +5,12 @@ WORKDIR /app
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./
-RUN go mod download
 
 # Copy the source code
 COPY . .
+
+# Download dependencies and tidy
+RUN go mod tidy
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -o productcatalogservice .

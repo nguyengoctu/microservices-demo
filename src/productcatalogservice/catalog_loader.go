@@ -17,15 +17,18 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/alloydbconn"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -36,6 +39,10 @@ func loadCatalog(catalog *pb.ListProductsResponse) error {
 
 	if os.Getenv("ALLOYDB_CLUSTER_NAME") != "" {
 		return loadCatalogFromAlloyDB(catalog)
+	}
+
+	if os.Getenv("MYSQL_HOST") != "" {
+		return loadCatalogFromMySQL(catalog)
 	}
 
 	return loadCatalogFromLocalFile(catalog)
@@ -157,5 +164,92 @@ func loadCatalogFromAlloyDB(catalog *pb.ListProductsResponse) error {
 	}
 
 	log.Info("successfully parsed product catalog from AlloyDB")
+	return nil
+}
+
+func loadCatalogFromMySQL(catalog *pb.ListProductsResponse) error {
+	log.Info("loading catalog from MySQL...")
+
+	host := os.Getenv("MYSQL_HOST")
+	port := os.Getenv("MYSQL_PORT")
+	if port == "" {
+		port = "3306"
+	}
+	user := os.Getenv("MYSQL_USER")
+	if user == "" {
+		user = "root"
+	}
+	password := os.Getenv("MYSQL_PASSWORD")
+	database := os.Getenv("MYSQL_DATABASE")
+	if database == "" {
+		database = "productcatalog"
+	}
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", 
+		user, password, host, port, database)
+
+	var db *sql.DB
+	var err error
+
+	// Retry connection with exponential backoff
+	maxRetries := 10
+	for i := 0; i < maxRetries; i++ {
+		db, err = sql.Open("mysql", dsn)
+		if err != nil {
+			log.Warnf("attempt %d: failed to connect to MySQL: %v", i+1, err)
+			time.Sleep(time.Duration(1<<i) * time.Second)
+			continue
+		}
+
+		// Test connection
+		if err = db.Ping(); err != nil {
+			log.Warnf("attempt %d: failed to ping MySQL database: %v", i+1, err)
+			db.Close()
+			time.Sleep(time.Duration(1<<i) * time.Second)
+			continue
+		}
+		
+		log.Info("successfully connected to MySQL")
+		break
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to connect to MySQL after %d attempts: %v", maxRetries, err)
+	}
+	defer db.Close()
+
+	query := "SELECT id, name, description, picture, price_usd_currency_code, price_usd_units, price_usd_nanos, categories FROM products"
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Warnf("failed to query MySQL database: %v", err)
+		return err
+	}
+	defer rows.Close()
+
+	catalog.Products = catalog.Products[:0]
+	for rows.Next() {
+		product := &pb.Product{}
+		product.PriceUsd = &pb.Money{}
+
+		var categories string
+		err = rows.Scan(&product.Id, &product.Name, &product.Description,
+			&product.Picture, &product.PriceUsd.CurrencyCode, &product.PriceUsd.Units,
+			&product.PriceUsd.Nanos, &categories)
+		if err != nil {
+			log.Warnf("failed to scan query result row: %v", err)
+			return err
+		}
+		categories = strings.ToLower(categories)
+		product.Categories = strings.Split(categories, ",")
+
+		catalog.Products = append(catalog.Products, product)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Warnf("error iterating over rows: %v", err)
+		return err
+	}
+
+	log.Info("successfully parsed product catalog from MySQL")
 	return nil
 }
