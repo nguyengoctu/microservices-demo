@@ -40,7 +40,7 @@ pipeline {
                 '''
             }
         }
-        stage('Build') {
+        stage('Build & Test') {
             steps {
                 sh '''#!/bin/bash
                     # Read base version from VERSION file
@@ -61,7 +61,11 @@ pipeline {
                     sed -i "s/TAG/$TAG/g" docker-compose.yml
                     cat docker-compose.yml
                 '''
-                sh 'docker compose build'
+                sh '''
+                    echo "Building Docker images (tests will run automatically during build)..."
+                    docker compose build
+                    echo "All services built successfully with tests passing!"
+                '''
             }
         }
         stage('Push to Registry') {

@@ -9,15 +9,15 @@ RUN pip install --no-cache-dir -r requirements.txt -r test-requirements.txt
 
 # Copy source code and run tests
 COPY . .
-RUN python -m pytest test_recommendation_server.py -v
+RUN python -m pytest test_shopping_assistant.py -v
 
 # Production stage
 FROM python:3.11-alpine AS production
 RUN apk add --no-cache make g++
 WORKDIR /app
-ENV PORT=7005
-ENV DISABLE_PROFILER=1
-ENV PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
+ENV PORT=9999
+ENV FLASK_APP=shoppingassistantservice.py
+ENV FLASK_ENV=production
 
 # Copy requirements and install only production dependencies
 COPY requirements.txt .
@@ -26,5 +26,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source code
 COPY . .
 
-EXPOSE 7005
-CMD ["python", "recommendation_server.py"]
+EXPOSE 9999
+CMD ["python", "shoppingassistantservice.py"]

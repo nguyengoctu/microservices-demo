@@ -10,8 +10,11 @@ RUN gradle dependencies --no-daemon
 # Copy source code
 COPY . .
 
+# Run tests first
+RUN gradle test --no-daemon
+
 # Build distribution (includes all deps properly)
-RUN gradle installDist --no-daemon -x test -x check -x verifyGoogleJavaFormat
+RUN gradle installDist --no-daemon -x verifyGoogleJavaFormat
 
 # Runtime stage - Java 19 runtime
 FROM openjdk:19-jdk-slim
