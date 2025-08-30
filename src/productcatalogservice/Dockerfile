@@ -24,7 +24,6 @@ ENV PORT=7002
 # Copy the binary from the builder
 COPY --from=builder /app/productcatalogservice .
 COPY products.json .
-COPY schema.sql .
 
 # Expose service port (change if needed)
 EXPOSE 7002
