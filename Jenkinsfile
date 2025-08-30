@@ -1,7 +1,7 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'BRANCH', defaultValue: 'mysql-for-products', description: 'Git branch to checkout')
+        string(name: 'BRANCH', defaultValue: 'unit-tests', description: 'Git branch to checkout')
     }
     environment {
         BRANCH = "${params.BRANCH}"
