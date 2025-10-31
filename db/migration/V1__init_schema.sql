@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS productcatalog;
-USE productcatalog;
-
 CREATE TABLE IF NOT EXISTS products (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,

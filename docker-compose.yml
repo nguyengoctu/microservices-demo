@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   redis:
     labels:
@@ -25,7 +24,6 @@ services:
       - MYSQL_USER=catalog_user
       - MYSQL_PASSWORD=catalog_password
     volumes:
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
       - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "catalog_user", "-pcatalog_password"]
@@ -34,13 +32,28 @@ services:
       retries: 5
       start_period: 30s
 
+  flyway:
+    labels:
+      - "project=microservices-demo"
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    image: flyway-migration
+    container_name: flyway-service
+    command: -url=jdbc:mysql://mysql-service:3306/productcatalog -user=catalog_user -password=catalog_password -connectRetries=60 migrate
+    networks:
+      - microservices-demo
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   ad-service:
     labels:
       - "project=microservices-demo"
     build:
       context: ./src/adservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/ad-service:TAG
+    image: ad-service
     container_name: ad-service
     ports:
       - "7007:7007"
@@ -56,7 +69,7 @@ services:
     build:
       context: ./src/cartservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/cart-service:TAG
+    image: cart-service
     container_name: cart-service
     ports:
       - "7006:7006"
@@ -75,7 +88,7 @@ services:
     build:
       context: ./src/productcatalogservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/product-catalog-service:TAG
+    image: product-catalog-service
     container_name: product-catalog-service
     ports:
       - "7002:7002"
@@ -92,6 +105,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
 
   recommendation-service:
     labels:
@@ -99,7 +114,7 @@ services:
     build:
       context: ./src/recommendationservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/recommendation-service:TAG
+    image: recommendation-service
     container_name: recommendation-service
     ports:
       - "7005:7005"
@@ -118,7 +133,7 @@ services:
     build:
       context: ./src/shippingservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/shipping-service:TAG
+    image: shipping-service
     container_name: shipping-service
     ports:
       - "7003:7003"
@@ -134,7 +149,7 @@ services:
     build:
       context: ./src/currencyservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/currency-service:TAG
+    image: currency-service
     container_name: currency-service
     ports:
       - "7000:7000"
@@ -150,7 +165,7 @@ services:
     build:
       context: ./src/paymentservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/payment-service:TAG
+    image: payment-service
     container_name: payment-service
     ports:
       - "7001:7001"
@@ -166,7 +181,7 @@ services:
     build:
       context: ./src/emailservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/email-service:TAG
+    image: email-service
     container_name: email-service
     ports:
       - "7004:7004"
@@ -182,7 +197,7 @@ services:
     build:
       context: ./src/checkoutservice
       dockerfile: Dockerfile
-    image: DOCKER_USER/checkout-service:TAG
+    image: checkout-service
     container_name: checkout-service
     ports:
       - "7008:7008"
@@ -211,7 +226,7 @@ services:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
-    image: DOCKER_USER/frontend:TAG
+    image: frontend
     container_name: frontend-service
     ports:
       - "7009:7009"
