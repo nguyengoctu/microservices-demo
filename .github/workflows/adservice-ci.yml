@@ -2,7 +2,7 @@ name: Ad Service CI
 
 on:
   push:
-    branches: [ci-github-actions]
+    branches: [main]
     paths:
       - "src/adservice/**"
       - ".github/workflows/adservice-ci.yml"
