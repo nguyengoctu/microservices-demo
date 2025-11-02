@@ -1,0 +1,49 @@
+name: Ad Service CI
+
+on:
+  push:
+    branches: [ci-github-actions]
+    paths:
+      - "src/adservice/**"
+      - ".github/workflows/adservice-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/adservice/**"
+
+env:
+  JAVA_VERSION: "19"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/adservice
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 19
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+          cache: "gradle"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: adservice-build
+          path: src/adservice/build/libs/
+          retention-days: 5
