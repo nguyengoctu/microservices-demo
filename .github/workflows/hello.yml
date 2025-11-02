@@ -1,0 +1,8 @@
+name: Hello World CI
+on: [push, pull_request]
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello
+        run: echo "Hello, World!"
