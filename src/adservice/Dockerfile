@@ -11,7 +11,7 @@ RUN gradle dependencies --no-daemon
 COPY . .
 
 # Run tests first
-RUN gradle test --no-daemon -x verifyGoogleJavaFormat || true
+RUN gradle test --no-daemon -x verifyGoogleJavaFormat
 
 # Build distribution (includes all deps properly)
 RUN gradle installDist --no-daemon -x test -x check -x verifyGoogleJavaFormat
