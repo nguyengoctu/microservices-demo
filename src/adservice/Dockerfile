@@ -17,7 +17,7 @@ RUN gradle test --no-daemon -x verifyGoogleJavaFormat
 RUN gradle installDist --no-daemon -x test -x check -x verifyGoogleJavaFormat
 
 # Runtime stage - Java 19 runtime
-FROM openjdk:19-jdk-slim
+FROM eclipse-temurin:19-jre-alpine
 WORKDIR /app
 
 # Copy entire distribution
