@@ -25,8 +25,10 @@ COPY --from=build /app/build/install/hipstershop/ /app/
 
 # Set environment
 ENV PORT=7007
+ENV HEALTH_PORT=7107
 
 EXPOSE 7007
+EXPOSE 7107
 
 # Use generated startup script
 CMD ["./bin/AdService"]

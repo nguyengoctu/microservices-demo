@@ -18,6 +18,7 @@ def grpcVersion = "1.73.0"
 def jacksonCoreVersion = "2.19.1"
 def jacksonDatabindVersion = "2.19.1"
 def protocVersion = "4.31.1"
+def jettyVersion = "11.0.24"
 
 tasks.withType(JavaCompile) {
     sourceCompatibility = JavaVersion.VERSION_19
@@ -41,7 +42,10 @@ dependencies {
                 "io.grpc:grpc-services:${grpcVersion}",
                 "io.grpc:grpc-census:${grpcVersion}",
                 "org.apache.logging.log4j:log4j-core:2.25.1",
-                "com.google.protobuf:protobuf-java:${protocVersion}"
+                "com.google.protobuf:protobuf-java:${protocVersion}",
+                "org.eclipse.jetty:jetty-server:${jettyVersion}",
+                "org.eclipse.jetty:jetty-servlet:${jettyVersion}",
+                "jakarta.servlet:jakarta.servlet-api:5.0.0"
 
         runtimeOnly "com.fasterxml.jackson.core:jackson-core:${jacksonCoreVersion}",
                 "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}",
@@ -52,6 +56,7 @@ dependencies {
         testImplementation "org.mockito:mockito-core:5.14.2"
         testImplementation "org.mockito:mockito-junit-jupiter:5.14.2"
         testImplementation "io.grpc:grpc-testing:${grpcVersion}"
+        testImplementation "io.rest-assured:rest-assured:5.5.0"
     }
 }
 
