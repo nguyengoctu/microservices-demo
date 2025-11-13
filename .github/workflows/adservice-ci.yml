@@ -6,6 +6,7 @@ on:
     paths:
       - "src/adservice/**"
       - ".github/workflows/adservice-ci.yml"
+      - "VERSION"
   pull_request:
     branches: [main]
     paths:
