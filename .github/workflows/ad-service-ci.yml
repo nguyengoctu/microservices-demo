@@ -4,14 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/adservice/**"
-      - ".github/workflows/adservice-ci.yml"
+      - "src/ad-service/**"
+      - ".github/workflows/ad-service-ci.yml"
       - "VERSION"
   pull_request:
     branches: [main]
     paths:
-      - "src/adservice/**"
-      - ".github/workflows/adservice-ci.yml"
+      - "src/ad-service/**"
+      - ".github/workflows/ad-service-ci.yml"
 
 env:
   JAVA_VERSION: "19"
@@ -21,14 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./src/adservice
+        working-directory: ./src/ad-service
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build Docker image (includes tests)
-        run: docker build -t adservice:latest .
+        run: docker build -t ad-service:latest .
 
       - name: Read version
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -47,7 +47,7 @@ jobs:
       - name: Tag and push
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          docker tag adservice:latest ${{ secrets.DOCKERHUB_USERNAME }}/adservice:${{ steps.version.outputs.VERSION }}
-          docker tag adservice:latest ${{ secrets.DOCKERHUB_USERNAME }}/adservice:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/adservice:${{ steps.version.outputs.VERSION }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/adservice:latest
+          docker tag ad-service:latest ${{ secrets.DOCKERHUB_USERNAME }}/ad-service:${{ steps.version.outputs.VERSION }}
+          docker tag ad-service:latest ${{ secrets.DOCKERHUB_USERNAME }}/ad-service:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ad-service:${{ steps.version.outputs.VERSION }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ad-service:latest

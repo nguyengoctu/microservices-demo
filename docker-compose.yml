@@ -51,7 +51,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/adservice
+      context: ./src/ad-service
       dockerfile: Dockerfile
     image: ad-service
     container_name: ad-service
