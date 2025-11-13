@@ -33,7 +33,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: version
         run: |
-          VERSION=$(cat ../../version)
+          VERSION=$(cat ../../VERSION)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Login to Docker Hub
