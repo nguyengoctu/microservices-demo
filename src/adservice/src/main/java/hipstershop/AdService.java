@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import hipstershop.Demo.Ad;
 import hipstershop.Demo.AdRequest;
 import hipstershop.Demo.AdResponse;
-import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.StatusRuntimeException;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
@@ -37,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 public final class AdService {
 
@@ -45,22 +46,38 @@ public final class AdService {
   @SuppressWarnings("FieldCanBeLocal")
   private static int MAX_ADS_TO_SERVE = 2;
 
-  private Server server;
+  private io.grpc.Server grpcServer;
+  private org.eclipse.jetty.server.Server httpServer;
   private HealthStatusManager healthMgr;
+  private HealthCheckHandler healthCheckHandler;
 
   private static final AdService service = new AdService();
 
-  private void start() throws IOException {
-    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9555"));
-    healthMgr = new HealthStatusManager();
+  private void start() throws Exception {
+    int grpcPort = Integer.parseInt(System.getenv().getOrDefault("PORT", "9555"));
+    int httpPort = Integer.parseInt(System.getenv().getOrDefault("HEALTH_PORT", "9556"));
 
-    server =
-        ServerBuilder.forPort(port)
+    healthMgr = new HealthStatusManager();
+    healthCheckHandler = new HealthCheckHandler();
+
+    // Start gRPC server
+    grpcServer =
+        ServerBuilder.forPort(grpcPort)
             .addService(new AdServiceImpl())
             .addService(healthMgr.getHealthService())
             .build()
             .start();
-    logger.info("Ad Service started, listening on " + port);
+    logger.info("Ad Service gRPC server started, listening on " + grpcPort);
+
+    // Start HTTP server for health checks
+    httpServer = new org.eclipse.jetty.server.Server(httpPort);
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    httpServer.setHandler(context);
+    context.addServlet(new ServletHolder(healthCheckHandler), "/health");
+    httpServer.start();
+    logger.info("Ad Service HTTP health server started, listening on " + httpPort);
+
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(
@@ -72,12 +89,21 @@ public final class AdService {
                   System.err.println("*** server shut down");
                 }));
     healthMgr.setStatus("", ServingStatus.SERVING);
+    healthCheckHandler.setHealthy(true);
   }
 
   private void stop() {
-    if (server != null) {
+    if (grpcServer != null) {
       healthMgr.clearStatus("");
-      server.shutdown();
+      grpcServer.shutdown();
+    }
+    if (httpServer != null) {
+      try {
+        healthCheckHandler.setHealthy(false);
+        httpServer.stop();
+      } catch (Exception e) {
+        logger.error("Error stopping HTTP server", e);
+      }
     }
   }
 
@@ -141,8 +167,8 @@ public final class AdService {
 
   /** Await termination on the main thread since the grpc library uses daemon threads. */
   private void blockUntilShutdown() throws InterruptedException {
-    if (server != null) {
-      server.awaitTermination();
+    if (grpcServer != null) {
+      grpcServer.awaitTermination();
     }
   }
 
@@ -220,7 +246,7 @@ public final class AdService {
   }
 
   /** Main launches the server from the command line. */
-  public static void main(String[] args) throws IOException, InterruptedException {
+  public static void main(String[] args) throws Exception {
 
     new Thread(
             () -> {

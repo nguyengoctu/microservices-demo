@@ -57,10 +57,12 @@ services:
     container_name: ad-service
     ports:
       - "7007:7007"
+      - "7107:7107"
     networks:
       - microservices-demo
     environment:
       - PORT=7007
+      - HEALTH_PORT=7107
       - DISABLE_PROFILER=1
 
   cart-service:
