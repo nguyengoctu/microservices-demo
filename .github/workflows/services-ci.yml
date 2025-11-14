@@ -13,16 +13,21 @@ jobs:
       matrix:
         service:
           - name: ad-service
-            path: src/ad-service
           - name: cart-service
-            path: src/cart-service
-
+          - name: checkout-service
+          - name: currency-service
+          - name: email-service
+          - name: frontend
+          - name: payment-service
+          - name: product-catalog-service
+          - name: recommendation-service
+          - name: shipping-service
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build Docker image (includes tests)
-        working-directory: ./${{ matrix.service.path }}
+        working-directory: ./src/${{ matrix.service.name }}
         run: docker build -t ${{ matrix.service.name }}:latest .
 
       - name: Read version

@@ -88,7 +88,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/productcatalogservice
+      context: ./src/product-catalog-service
       dockerfile: Dockerfile
     image: product-catalog-service
     container_name: product-catalog-service
@@ -114,7 +114,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/recommendationservice
+      context: ./src/recommendation-service
       dockerfile: Dockerfile
     image: recommendation-service
     container_name: recommendation-service
@@ -133,7 +133,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/shippingservice
+      context: ./src/shipping-service
       dockerfile: Dockerfile
     image: shipping-service
     container_name: shipping-service
@@ -149,7 +149,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/currencyservice
+      context: ./src/currency-service
       dockerfile: Dockerfile
     image: currency-service
     container_name: currency-service
@@ -165,7 +165,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/paymentservice
+      context: ./src/payment-service
       dockerfile: Dockerfile
     image: payment-service
     container_name: payment-service
@@ -181,7 +181,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/emailservice
+      context: ./src/email-service
       dockerfile: Dockerfile
     image: email-service
     container_name: email-service
@@ -197,7 +197,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/checkoutservice
+      context: ./src/checkout-service
       dockerfile: Dockerfile
     image: checkout-service
     container_name: checkout-service
@@ -222,14 +222,14 @@ services:
       - cart-service
       - payment-service
 
-  frontend-service:
+  frontend:
     labels:
       - "project=microservices-demo"
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
     image: frontend
-    container_name: frontend-service
+    container_name: frontend
     ports:
       - "7009:7009"
     networks:
