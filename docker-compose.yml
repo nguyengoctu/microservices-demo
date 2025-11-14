@@ -69,7 +69,7 @@ services:
     labels:
       - "project=microservices-demo"
     build:
-      context: ./src/cartservice
+      context: ./src/cart-service
       dockerfile: Dockerfile
     image: cart-service
     container_name: cart-service
