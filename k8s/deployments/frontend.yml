@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: nguyengoctu/frontend:1.0.5
+          env:
+            - name: PORT
+              value: "7009"
+            - name: DISABLE_PROFILER
+              value: "1"
+            - name: CURRENCY_SERVICE_ADDR
+              value: "currency-service:7000"
+            - name: PRODUCT_CATALOG_SERVICE_ADDR
+              value: "product-catalog-service:7002"
+            - name: SHIPPING_SERVICE_ADDR
+              value: "shipping-service:7003"
+            - name: RECOMMENDATION_SERVICE_ADDR
+              value: "recommendation-service:7005"
+            - name: CART_SERVICE_ADDR
+              value: "cart-service:7006"
+            - name: AD_SERVICE_ADDR
+              value: "ad-service:7007"
+            - name: CHECKOUT_SERVICE_ADDR
+              value: "checkout-service:7008"
+            - name: SHOPPING_ASSISTANT_SERVICE_ADDR
+              value: "localhost:9999"

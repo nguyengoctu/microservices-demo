@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shipping-service
+  template:
+    metadata:
+      labels:
+        app: shipping-service
+    spec:
+      containers:
+        - name: shipping-service
+          image: nguyengoctu/shipping-service:1.0.6
+          env:
+            - name: PORT
+              value: "7003"
+            - name: DISABLE_PROFILER
+              value: "1"

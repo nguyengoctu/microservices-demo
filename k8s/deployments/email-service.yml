@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-service
+  template:
+    metadata:
+      labels:
+        app: email-service
+    spec:
+      containers:
+        - name: email-service
+          image: nguyengoctu/email-service:1.0.6
+          env:
+            - name: PORT
+              value: "7004"
+            - name: DISABLE_PROFILER
+              value: "1"
