@@ -31,6 +31,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
 	"github.com/GoogleCloudPlatform/microservices-demo/src/frontend/money"
@@ -632,4 +633,67 @@ func stringinSlice(slice []string, val string) bool {
 		}
 	}
 	return false
+}
+
+type ServiceHealth struct {
+	Name    string
+	Address string
+	Status  string
+	Error   string
+}
+
+func (fe *frontendServer) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
+	log.Debug("health check page")
+
+	services := []struct {
+		name string
+		addr string
+		conn *grpc.ClientConn
+	}{
+		{"Currency Service", fe.currencySvcAddr, fe.currencySvcConn},
+		{"Product Catalog Service", fe.productCatalogSvcAddr, fe.productCatalogSvcConn},
+		{"Cart Service", fe.cartSvcAddr, fe.cartSvcConn},
+		{"Recommendation Service", fe.recommendationSvcAddr, fe.recommendationSvcConn},
+		{"Shipping Service", fe.shippingSvcAddr, fe.shippingSvcConn},
+		{"Ad Service", fe.adSvcAddr, fe.adSvcConn},
+		{"Checkout Service", fe.checkoutSvcAddr, fe.checkoutSvcConn},
+	}
+
+	healthStatuses := make([]ServiceHealth, 0, len(services))
+	overallHealthy := true
+
+	for _, svc := range services {
+		health := ServiceHealth{
+			Name:    svc.name,
+			Address: svc.addr,
+			Status:  "healthy",
+		}
+
+		if svc.conn == nil {
+			health.Status = "unhealthy"
+			health.Error = "Connection not established"
+			overallHealthy = false
+		} else {
+			state := svc.conn.GetState()
+			if state.String() != "READY" {
+				health.Status = "unhealthy"
+				health.Error = fmt.Sprintf("Connection state: %s", state.String())
+				overallHealthy = false
+			}
+		}
+
+		healthStatuses = append(healthStatuses, health)
+	}
+
+	currencies, _ := fe.getCurrencies(r.Context())
+
+	if err := templates.ExecuteTemplate(w, "health", injectCommonTemplateData(r, map[string]interface{}{
+		"show_currency":    false,
+		"currencies":       currencies,
+		"services":         healthStatuses,
+		"overall_healthy":  overallHealthy,
+	})); err != nil {
+		log.Println(err)
+	}
 }

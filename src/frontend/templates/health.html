@@ -1,0 +1,104 @@
+<!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+{{ define "health" }}
+
+{{ template "header" . }}
+
+<main role="main">
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">Microservices Health Status</h2>
+
+                <!-- Overall Status Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Overall System Status</h5>
+                        {{ if $.overall_healthy }}
+                        <div class="alert alert-success" role="alert">
+                            <strong>All Systems Operational</strong> - All microservices are running normally.
+                        </div>
+                        {{ else }}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>System Degraded</strong> - One or more microservices are experiencing issues.
+                        </div>
+                        {{ end }}
+                    </div>
+                </div>
+
+                <!-- Services Status Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Service Details</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Service Name</th>
+                                        <th scope="col">Address</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{ range $.services }}
+                                    <tr>
+                                        <td><strong>{{ .Name }}</strong></td>
+                                        <td><code>{{ .Address }}</code></td>
+                                        <td>
+                                            {{ if eq .Status "healthy" }}
+                                            <span class="badge badge-success">Healthy</span>
+                                            {{ else }}
+                                            <span class="badge badge-danger">Unhealthy</span>
+                                            {{ end }}
+                                        </td>
+                                        <td>
+                                            {{ if .Error }}
+                                            <span class="text-danger">{{ .Error }}</span>
+                                            {{ else }}
+                                            <span class="text-success">Connection established</span>
+                                            {{ end }}
+                                        </td>
+                                    </tr>
+                                    {{ end }}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Refresh Note -->
+                <div class="mt-3">
+                    <p class="text-muted">
+                        <small>Last checked: <span id="current-time"></span> |
+                        <a href="{{ $.baseUrl }}/health">Refresh</a> to update status
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Display current time
+    document.getElementById('current-time').textContent = new Date().toLocaleString();
+</script>
+
+{{ template "footer" . }}
+
+{{ end }}
