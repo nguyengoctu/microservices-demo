@@ -226,10 +226,28 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	var err error
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
+
+	// Configure retry and reconnect policy
+	serviceConfig := `{
+		"methodConfig": [{
+			"name": [{"service": ""}],
+			"retryPolicy": {
+				"maxAttempts": 5,
+				"initialBackoff": "0.1s",
+				"maxBackoff": "10s",
+				"backoffMultiplier": 2.0,
+				"retryableStatusCodes": ["UNAVAILABLE"]
+			}
+		}],
+		"loadBalancingConfig": [{"round_robin":{}}]
+	}`
+
 	*conn, err = grpc.DialContext(ctx, addr,
 		grpc.WithInsecure(),
 		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
-		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
+		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()),
+		grpc.WithDefaultServiceConfig(serviceConfig),
+		grpc.WithBlock())
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))
 	}

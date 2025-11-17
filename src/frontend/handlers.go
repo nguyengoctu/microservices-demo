@@ -649,15 +649,15 @@ func (fe *frontendServer) healthCheckHandler(w http.ResponseWriter, r *http.Requ
 	services := []struct {
 		name string
 		addr string
-		conn *grpc.ClientConn
+		conn **grpc.ClientConn
 	}{
-		{"Currency Service", fe.currencySvcAddr, fe.currencySvcConn},
-		{"Product Catalog Service", fe.productCatalogSvcAddr, fe.productCatalogSvcConn},
-		{"Cart Service", fe.cartSvcAddr, fe.cartSvcConn},
-		{"Recommendation Service", fe.recommendationSvcAddr, fe.recommendationSvcConn},
-		{"Shipping Service", fe.shippingSvcAddr, fe.shippingSvcConn},
-		{"Ad Service", fe.adSvcAddr, fe.adSvcConn},
-		{"Checkout Service", fe.checkoutSvcAddr, fe.checkoutSvcConn},
+		{"Currency Service", fe.currencySvcAddr, &fe.currencySvcConn},
+		{"Product Catalog Service", fe.productCatalogSvcAddr, &fe.productCatalogSvcConn},
+		{"Cart Service", fe.cartSvcAddr, &fe.cartSvcConn},
+		{"Recommendation Service", fe.recommendationSvcAddr, &fe.recommendationSvcConn},
+		{"Shipping Service", fe.shippingSvcAddr, &fe.shippingSvcConn},
+		{"Ad Service", fe.adSvcAddr, &fe.adSvcConn},
+		{"Checkout Service", fe.checkoutSvcAddr, &fe.checkoutSvcConn},
 	}
 
 	healthStatuses := make([]ServiceHealth, 0, len(services))
@@ -670,16 +670,33 @@ func (fe *frontendServer) healthCheckHandler(w http.ResponseWriter, r *http.Requ
 			Status:  "healthy",
 		}
 
-		if svc.conn == nil {
+		if *svc.conn == nil {
 			health.Status = "unhealthy"
 			health.Error = "Connection not established"
 			overallHealthy = false
 		} else {
-			state := svc.conn.GetState()
+			state := (*svc.conn).GetState()
+
+			// If connection is not ready, try to reconnect
 			if state.String() != "READY" {
-				health.Status = "unhealthy"
-				health.Error = fmt.Sprintf("Connection state: %s", state.String())
-				overallHealthy = false
+				log.WithField("service", svc.name).Info("Connection not ready, attempting to reconnect...")
+
+				// Wait for state change or try to reconnect
+				(*svc.conn).Connect()
+
+				// Give it a moment to reconnect
+				time.Sleep(100 * time.Millisecond)
+
+				// Check state again
+				newState := (*svc.conn).GetState()
+				if newState.String() != "READY" {
+					health.Status = "unhealthy"
+					health.Error = fmt.Sprintf("Connection state: %s (reconnect attempted)", newState.String())
+					overallHealthy = false
+				} else {
+					health.Status = "healthy"
+					health.Error = "Reconnected successfully"
+				}
 			}
 		}
 
