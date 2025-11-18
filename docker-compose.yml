@@ -47,182 +47,182 @@ services:
       mysql:
         condition: service_healthy
 
-  ad-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/ad-service
-      dockerfile: Dockerfile
-    image: ad-service
-    container_name: ad-service
-    ports:
-      - "7007:7007"
-      - "7107:7107"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7007
-      - HEALTH_PORT=7107
-      - DISABLE_PROFILER=1
+  # ad-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/ad-service
+  #     dockerfile: Dockerfile
+  #   image: ad-service
+  #   container_name: ad-service
+  #   ports:
+  #     - "7007:7007"
+  #     - "7107:7107"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7007
+  #     - HEALTH_PORT=7107
+  #     - DISABLE_PROFILER=1
 
-  cart-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/cart-service
-      dockerfile: Dockerfile
-    image: cart-service
-    container_name: cart-service
-    ports:
-      - "7006:7006"
-    depends_on:
-      - redis
-    networks:
-      - microservices-demo
-    environment:
-      - ASPNETCORE_URLS=http://*:7006
-      - REDIS_ADDR=redis-service:6379
-      - DISABLE_PROFILER=1
+  # cart-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/cart-service
+  #     dockerfile: Dockerfile
+  #   image: cart-service
+  #   container_name: cart-service
+  #   ports:
+  #     - "7006:7006"
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - ASPNETCORE_URLS=http://*:7006
+  #     - REDIS_ADDR=redis-service:6379
+  #     - DISABLE_PROFILER=1
 
-  product-catalog-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/product-catalog-service
-      dockerfile: Dockerfile
-    image: product-catalog-service
-    container_name: product-catalog-service
-    ports:
-      - "7002:7002"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7002
-      - DISABLE_PROFILER=1
-      - MYSQL_HOST=mysql-service
-      - MYSQL_PORT=3306
-      - MYSQL_USER=catalog_user
-      - MYSQL_PASSWORD=catalog_password
-      - MYSQL_DATABASE=productcatalog
-    depends_on:
-      mysql:
-        condition: service_healthy
-      flyway:
-        condition: service_completed_successfully
+  # product-catalog-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/product-catalog-service
+  #     dockerfile: Dockerfile
+  #   image: product-catalog-service
+  #   container_name: product-catalog-service
+  #   ports:
+  #     - "7002:7002"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7002
+  #     - DISABLE_PROFILER=1
+  #     - MYSQL_HOST=mysql-service
+  #     - MYSQL_PORT=3306
+  #     - MYSQL_USER=catalog_user
+  #     - MYSQL_PASSWORD=catalog_password
+  #     - MYSQL_DATABASE=productcatalog
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #     flyway:
+  #       condition: service_completed_successfully
 
-  recommendation-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/recommendation-service
-      dockerfile: Dockerfile
-    image: recommendation-service
-    container_name: recommendation-service
-    ports:
-      - "7005:7005"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7005
-      - DISABLE_PROFILER=1
-      - PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
-    depends_on:
-      - product-catalog-service
+  # recommendation-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/recommendation-service
+  #     dockerfile: Dockerfile
+  #   image: recommendation-service
+  #   container_name: recommendation-service
+  #   ports:
+  #     - "7005:7005"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7005
+  #     - DISABLE_PROFILER=1
+  #     - PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
+  #   depends_on:
+  #     - product-catalog-service
 
-  shipping-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/shipping-service
-      dockerfile: Dockerfile
-    image: shipping-service
-    container_name: shipping-service
-    ports:
-      - "7003:7003"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7003
-      - DISABLE_PROFILER=1
+  # shipping-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/shipping-service
+  #     dockerfile: Dockerfile
+  #   image: shipping-service
+  #   container_name: shipping-service
+  #   ports:
+  #     - "7003:7003"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7003
+  #     - DISABLE_PROFILER=1
 
-  currency-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/currency-service
-      dockerfile: Dockerfile
-    image: currency-service
-    container_name: currency-service
-    ports:
-      - "7000:7000"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7000
-      - DISABLE_PROFILER=1
+  # currency-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/currency-service
+  #     dockerfile: Dockerfile
+  #   image: currency-service
+  #   container_name: currency-service
+  #   ports:
+  #     - "7000:7000"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7000
+  #     - DISABLE_PROFILER=1
 
-  payment-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/payment-service
-      dockerfile: Dockerfile
-    image: payment-service
-    container_name: payment-service
-    ports:
-      - "7001:7001"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7001
-      - DISABLE_PROFILER=1
+  # payment-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/payment-service
+  #     dockerfile: Dockerfile
+  #   image: payment-service
+  #   container_name: payment-service
+  #   ports:
+  #     - "7001:7001"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7001
+  #     - DISABLE_PROFILER=1
 
-  email-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/email-service
-      dockerfile: Dockerfile
-    image: email-service
-    container_name: email-service
-    ports:
-      - "7004:7004"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7004
-      - DISABLE_PROFILER=1
+  # email-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/email-service
+  #     dockerfile: Dockerfile
+  #   image: email-service
+  #   container_name: email-service
+  #   ports:
+  #     - "7004:7004"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7004
+  #     - DISABLE_PROFILER=1
 
-  checkout-service:
-    labels:
-      - "project=microservices-demo"
-    build:
-      context: ./src/checkout-service
-      dockerfile: Dockerfile
-    image: checkout-service
-    container_name: checkout-service
-    ports:
-      - "7008:7008"
-    networks:
-      - microservices-demo
-    environment:
-      - PORT=7008
-      - DISABLE_PROFILER=1
-      - CURRENCY_SERVICE_ADDR=currency-service:7000
-      - PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
-      - SHIPPING_SERVICE_ADDR=shipping-service:7003
-      - EMAIL_SERVICE_ADDR=email-service:7004
-      - CART_SERVICE_ADDR=cart-service:7006
-      - PAYMENT_SERVICE_ADDR=payment-service:7001
-    depends_on:
-      - product-catalog-service
-      - shipping-service
-      - email-service
-      - recommendation-service
-      - cart-service
-      - payment-service
+  # checkout-service:
+  #   labels:
+  #     - "project=microservices-demo"
+  #   build:
+  #     context: ./src/checkout-service
+  #     dockerfile: Dockerfile
+  #   image: checkout-service
+  #   container_name: checkout-service
+  #   ports:
+  #     - "7008:7008"
+  #   networks:
+  #     - microservices-demo
+  #   environment:
+  #     - PORT=7008
+  #     - DISABLE_PROFILER=1
+  #     - CURRENCY_SERVICE_ADDR=currency-service:7000
+  #     - PRODUCT_CATALOG_SERVICE_ADDR=product-catalog-service:7002
+  #     - SHIPPING_SERVICE_ADDR=shipping-service:7003
+  #     - EMAIL_SERVICE_ADDR=email-service:7004
+  #     - CART_SERVICE_ADDR=cart-service:7006
+  #     - PAYMENT_SERVICE_ADDR=payment-service:7001
+  #   depends_on:
+  #     - product-catalog-service
+  #     - shipping-service
+  #     - email-service
+  #     - recommendation-service
+  #     - cart-service
+  #     - payment-service
 
-  frontend:
+  # frontend:
     labels:
       - "project=microservices-demo"
     build:
