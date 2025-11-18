@@ -677,25 +677,40 @@ func (fe *frontendServer) healthCheckHandler(w http.ResponseWriter, r *http.Requ
 		} else {
 			state := (*svc.conn).GetState()
 
-			// If connection is not ready, try to reconnect
+			// If connection is not ready, try to reconnect with retries
 			if state.String() != "READY" {
 				log.WithField("service", svc.name).Info("Connection not ready, attempting to reconnect...")
 
-				// Wait for state change or try to reconnect
-				(*svc.conn).Connect()
+				// Retry logic with exponential backoff
+				maxRetries := 3
+				connected := false
 
-				// Give it a moment to reconnect
-				time.Sleep(100 * time.Millisecond)
+				for attempt := 1; attempt <= maxRetries; attempt++ {
+					// Trigger reconnect
+					(*svc.conn).Connect()
 
-				// Check state again
-				newState := (*svc.conn).GetState()
-				if newState.String() != "READY" {
+					// Wait with exponential backoff (500ms, 1s, 2s)
+					waitTime := time.Duration(500*attempt) * time.Millisecond
+					time.Sleep(waitTime)
+
+					// Check state again
+					newState := (*svc.conn).GetState()
+					if newState.String() == "READY" {
+						health.Status = "healthy"
+						health.Error = fmt.Sprintf("Reconnected successfully (attempt %d/%d)", attempt, maxRetries)
+						connected = true
+						break
+					}
+
+					log.WithField("service", svc.name).WithField("attempt", attempt).
+						Infof("Reconnect attempt %d/%d failed, state: %s", attempt, maxRetries, newState.String())
+				}
+
+				if !connected {
+					finalState := (*svc.conn).GetState()
 					health.Status = "unhealthy"
-					health.Error = fmt.Sprintf("Connection state: %s (reconnect attempted)", newState.String())
+					health.Error = fmt.Sprintf("Connection state: %s (failed after %d attempts)", finalState.String(), maxRetries)
 					overallHealthy = false
-				} else {
-					health.Status = "healthy"
-					health.Error = "Reconnected successfully"
 				}
 			}
 		}

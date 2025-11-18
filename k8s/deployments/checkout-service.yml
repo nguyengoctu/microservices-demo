@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: checkout-service
-          image: nguyengoctu/checkout-service:1.0.6
+          image: nguyengoctu/checkout-service:latest
           env:
             - name: PORT
               value: "7008"

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: email-service
-          image: nguyengoctu/email-service:1.0.6
+          image: nguyengoctu/email-service:latest
           env:
             - name: PORT
               value: "7004"

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: nguyengoctu/frontend:1.0.5
+          image: nguyengoctu/frontend:latest
           env:
             - name: PORT
               value: "7009"

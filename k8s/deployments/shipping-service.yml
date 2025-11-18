@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: shipping-service
-          image: nguyengoctu/shipping-service:1.0.6
+          image: nguyengoctu/shipping-service:latest
           env:
             - name: PORT
               value: "7003"

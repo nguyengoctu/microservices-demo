@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: currency-service
-          image: nguyengoctu/currency-service:1.0.6
+          image: nguyengoctu/currency-service:latest
           env:
             - name: PORT
               value: "7000"

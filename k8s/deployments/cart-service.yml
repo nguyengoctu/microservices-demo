@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: cart-service
-          image: nguyengoctu/cart-service:1.0.6
+          image: nguyengoctu/cart-service:latest
           env:
             - name: PORT
               value: "7006"
