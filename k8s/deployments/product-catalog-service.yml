@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-catalog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-catalog-service
+  template:
+    metadata:
+      labels:
+        app: product-catalog-service
+    spec:
+      containers:
+        - name: product-catalog-service
+          image: nguyengoctu/product-catalog-service:latest
+          env:
+            - name: PORT
+              value: "7002"
+            - name: DISABLE_PROFILER
+              value: "1"
+            - name: MYSQL_HOST
+              value: mysql
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_USER
+              value: catalog_user
+            - name: MYSQL_PASSWORD
+              value: catalog_password
+            - name: MYSQL_DB
+              value: productcatalog

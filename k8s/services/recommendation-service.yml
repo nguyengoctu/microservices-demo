@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommendation-service
+spec:
+  selector:
+    app: recommendation-service
+  ports:
+    - protocol: TCP
+      port: 7005
+      targetPort: 7005
+  type: ClusterIP

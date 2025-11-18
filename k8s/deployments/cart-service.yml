@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+    spec:
+      containers:
+        - name: cart-service
+          image: nguyengoctu/cart-service:latest
+          env:
+            - name: PORT
+              value: "7006"
+            - name: DISABLE_PROFILER
+              value: "1"
+            - name: ASPNETCORE_URLS
+              value: "http://*:7006"
+            - name: REDIS_ADDR
+              value: "redis:6379"

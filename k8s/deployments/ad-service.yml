@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ad-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ad-service
+  template:
+    metadata:
+      labels:
+        app: ad-service
+    spec:
+      containers:
+        - name: ad-service
+          image: nguyengoctu/ad-service:latest
+          env:
+            - name: PORT
+              value: "7007"
+            - name: DISABLE_PROFILER
+              value: "1"
