@@ -7,26 +7,80 @@ on:
     branches: [main]
 
 jobs:
+  # Lint job - Check code quality for Node.js services
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [currency-service, payment-service]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: src/${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./src/${{ matrix.service }}
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./src/${{ matrix.service }}
+        run: npm run lint
+
+  # Security scan job - Check for vulnerabilities in dependencies
+  security-scan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [currency-service, payment-service]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "${{ matrix.service }}"
+          path: "./src/${{ matrix.service }}"
+          format: "HTML"
+          args: >
+            --enableRetired
+            --enableExperimental
+
+      - name: Upload Dependency-Check results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-${{ matrix.service }}
+          path: reports
+
   build-and-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         service:
-          - name: ad-service
-          - name: cart-service
-          - name: checkout-service
-          - name: currency-service
-          - name: email-service
-          - name: frontend
-          - name: payment-service
-          - name: product-catalog-service
-          - name: recommendation-service
-          - name: shipping-service
+          [
+            ad-service,
+            cart-service,
+            checkout-service,
+            currency-service,
+            email-service,
+            frontend,
+            payment-service,
+            product-catalog-service,
+            recommendation-service,
+            shipping-service,
+          ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Fetch last 2 commits to compare changes
+          fetch-depth: 2 # Fetch last 2 commits to compare changes
 
       - name: Check if VERSION file changed
         id: check_version
@@ -35,8 +89,8 @@ jobs:
           files: VERSION
 
       - name: Build Docker image (includes tests)
-        working-directory: ./src/${{ matrix.service.name }}
-        run: docker build -t ${{ matrix.service.name }}:latest .
+        working-directory: ./src/${{ matrix.service }}
+        run: docker build -t ${{ matrix.service }}:latest .
 
       - name: Read version
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_version.outputs.any_changed == 'true'
@@ -55,7 +109,7 @@ jobs:
       - name: Tag and push
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_version.outputs.any_changed == 'true'
         run: |
-          docker tag ${{ matrix.service.name }}:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:${{ steps.version.outputs.VERSION }}
-          docker tag ${{ matrix.service.name }}:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:${{ steps.version.outputs.VERSION }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:latest
+          docker tag ${{ matrix.service }}:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
+          docker tag ${{ matrix.service }}:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
