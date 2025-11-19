@@ -20,8 +20,8 @@ const logger = pino({
   name: 'paymentservice-charge',
   messageKey: 'message',
   formatters: {
-    level (logLevelString, logLevelNum) {
-      return { severity: logLevelString }
+    level (logLevelString, _logLevelNum) {
+      return { severity: logLevelString };
     }
   }
 });
@@ -35,8 +35,8 @@ class CreditCardError extends Error {
 }
 
 class InvalidCreditCard extends CreditCardError {
-  constructor (cardType) {
-    super(`Credit card info is invalid`);
+  constructor (_cardType) {
+    super('Credit card info is invalid');
   }
 }
 

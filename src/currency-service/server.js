@@ -19,17 +19,17 @@ const logger = pino({
   name: 'currencyservice-server',
   messageKey: 'message',
   formatters: {
-    level (logLevelString, logLevelNum) {
-      return { severity: logLevelString }
+    level (logLevelString, _logLevelNum) {
+      return { severity: logLevelString };
     }
   }
 });
 
 if(process.env.DISABLE_PROFILER) {
-  logger.info("Profiler disabled.")
+  logger.info('Profiler disabled.');
 }
 else {
-  logger.info("Profiler enabled.")
+  logger.info('Profiler enabled.');
   require('@google-cloud/profiler').start({
     serviceContext: {
       service: 'currencyservice',
@@ -47,8 +47,8 @@ registerInstrumentations({
   instrumentations: [new GrpcInstrumentation()]
 });
 
-if(process.env.ENABLE_TRACING == "1") {
-  logger.info("Tracing enabled.")
+if(process.env.ENABLE_TRACING == '1') {
+  logger.info('Tracing enabled.');
 
   const { resourceFromAttributes } = require('@opentelemetry/resources');
 
@@ -67,10 +67,10 @@ if(process.env.ENABLE_TRACING == "1") {
     traceExporter: traceExporter,
   });
 
-  sdk.start()
+  sdk.start();
 }
 else {
-  logger.info("Tracing disabled.")
+  logger.info('Tracing disabled.');
 }
 
 const path = require('path');
@@ -159,7 +159,7 @@ function convert (call, callback) {
       result.nanos = Math.floor(result.nanos);
       result.currency_code = request.to_code;
 
-      logger.info(`conversion request successful`);
+      logger.info('conversion request successful');
       callback(null, result);
     });
   } catch (err) {

@@ -16,12 +16,12 @@
 
 'use strict';
 
-const logger = require('./logger')
+const logger = require('./logger');
 
 if (process.env.DISABLE_PROFILER) {
-  logger.info("Profiler disabled.")
+  logger.info('Profiler disabled.');
 } else {
-  logger.info("Profiler enabled.")
+  logger.info('Profiler enabled.');
   require('@google-cloud/profiler').start({
     serviceContext: {
       service: 'paymentservice',
@@ -31,8 +31,8 @@ if (process.env.DISABLE_PROFILER) {
 }
 
 
-if (process.env.ENABLE_TRACING == "1") {
-  logger.info("Tracing enabled.")
+if (process.env.ENABLE_TRACING == '1') {
+  logger.info('Tracing enabled.');
 
   const { resourceFromAttributes } = require('@opentelemetry/resources');
 
@@ -58,9 +58,9 @@ if (process.env.ENABLE_TRACING == "1") {
     instrumentations: [new GrpcInstrumentation()]
   });
 
-  sdk.start()
+  sdk.start();
 } else {
-  logger.info("Tracing disabled.")
+  logger.info('Tracing disabled.');
 }
 
 
