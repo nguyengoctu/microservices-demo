@@ -8,7 +8,7 @@ on:
 
 jobs:
   # Lint job - Check code quality for Node.js services
-  lint:
+  lint-js:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -65,6 +65,124 @@ jobs:
         with:
           name: dependency-check-report-${{ matrix.service }}
           path: reports
+
+  # Go services - Lint and security scan
+  lint-go:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          [
+            checkout-service,
+            frontend,
+            product-catalog-service,
+            shipping-service,
+          ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          working-directory: ./src/${{ matrix.service }}
+
+      - name: Run govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          cd src/${{ matrix.service }}
+          govulncheck ./...
+
+  # Java service (ad-service) - Lint and security scan
+  lint-java:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Run Checkstyle
+        working-directory: ./src/ad-service
+        run: |
+          ./gradlew checkstyleMain checkstyleTest || true
+
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "ad-service"
+          path: "./src/ad-service"
+          format: "HTML"
+
+      - name: Upload Dependency-Check results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-ad-service
+          path: reports
+
+  # C# service (cart-service) - Lint and security scan
+  lint-dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        working-directory: ./src/cart-service
+        run: dotnet restore
+
+      - name: Check code format
+        working-directory: ./src/cart-service
+        run: dotnet format --verify-no-changes || true
+
+      - name: Check for vulnerable packages
+        working-directory: ./src/cart-service
+        run: dotnet list package --vulnerable --include-transitive
+
+  # Python services - Lint and security scan
+  lint-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [email-service, recommendation-service]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: ./src/${{ matrix.service }}
+        run: |
+          pip install flake8 pip-audit
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run flake8
+        working-directory: ./src/${{ matrix.service }}
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run pip-audit
+        working-directory: ./src/${{ matrix.service }}
+        run: pip-audit || true
 
   build-and-push:
     runs-on: ubuntu-latest
