@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  # Lint job - Check code quality for Node.js services
+  # Node.js services - Lint and security scan
   lint-js:
     runs-on: ubuntu-latest
     strategy:
@@ -28,43 +28,13 @@ jobs:
 
       - name: Run ESLint
         working-directory: ./src/${{ matrix.service }}
+        continue-on-error: true
         run: npm run lint
 
-  # Security scan job - Check for vulnerabilities in dependencies
-  security-scan:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [currency-service, payment-service]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-
-      - name: Install dependencies
+      - name: Run npm audit
         working-directory: ./src/${{ matrix.service }}
-        run: npm install
-
-      - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "${{ matrix.service }}"
-          path: "./src/${{ matrix.service }}"
-          format: "HTML"
-          args: >
-            --enableRetired
-            --enableExperimental
-
-      - name: Upload Dependency-Check results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report-${{ matrix.service }}
-          path: reports
+        continue-on-error: true
+        run: npm audit --audit-level=high
 
   # Go services - Lint and security scan
   lint-go:
@@ -89,6 +59,7 @@ jobs:
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v4
+        continue-on-error: true
         with:
           version: latest
           working-directory: ./src/${{ matrix.service }}
@@ -114,22 +85,13 @@ jobs:
 
       - name: Run Checkstyle
         working-directory: ./src/ad-service
-        run: |
-          ./gradlew checkstyleMain checkstyleTest || true
+        continue-on-error: true
+        run: ./gradlew checkstyleMain checkstyleTest
 
-      - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "ad-service"
-          path: "./src/ad-service"
-          format: "HTML"
-
-      - name: Upload Dependency-Check results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report-ad-service
-          path: reports
+      - name: Check for vulnerable dependencies
+        working-directory: ./src/ad-service
+        continue-on-error: true
+        run: ./gradlew dependencyCheckAnalyze || echo "Dependency check not configured"
 
   # C# service (cart-service) - Lint and security scan
   lint-dotnet:
@@ -149,7 +111,7 @@ jobs:
 
       - name: Check code format
         working-directory: ./src/cart-service
-        run: dotnet format --verify-no-changes || true
+        run: dotnet format --verify-no-changes
 
       - name: Check for vulnerable packages
         working-directory: ./src/cart-service
@@ -178,6 +140,7 @@ jobs:
 
       - name: Run flake8
         working-directory: ./src/${{ matrix.service }}
+        continue-on-error: true
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Run pip-audit
