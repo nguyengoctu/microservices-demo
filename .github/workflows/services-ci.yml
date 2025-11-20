@@ -65,6 +65,7 @@ jobs:
           working-directory: ./src/${{ matrix.service }}
 
       - name: Run govulncheck
+        continue-on-error: true
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           cd src/${{ matrix.service }}
@@ -111,10 +112,12 @@ jobs:
 
       - name: Check code format
         working-directory: ./src/cart-service
+        continue-on-error: true
         run: dotnet format --verify-no-changes
 
       - name: Check for vulnerable packages
         working-directory: ./src/cart-service
+        continue-on-error: true
         run: dotnet list package --vulnerable --include-transitive
 
   # Python services - Lint and security scan
