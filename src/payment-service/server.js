@@ -18,7 +18,7 @@ const protoLoader = require('@grpc/proto-loader');
 
 const charge = require('./charge');
 
-const logger = require('./logger')
+const logger = require('./logger');
 
 class HipsterShopServer {
   constructor(protoRoot, port = HipsterShopServer.PORT) {
@@ -55,8 +55,8 @@ class HipsterShopServer {
 
 
   listen() {
-    const server = this.server 
-    const port = this.port
+    const server = this.server;
+    const port = this.port;
     server.bindAsync(
       `[::]:${port}`,
       grpc.ServerCredentials.createInsecure(),
@@ -81,7 +81,7 @@ class HipsterShopServer {
     return grpc.loadPackageDefinition(packageDefinition);
   }
 
-  loadAllProtos(protoRoot) {
+  loadAllProtos(_protoRoot) {
     const hipsterShopPackage = this.packages.hipsterShop.hipstershop;
     const healthPackage = this.packages.health.grpc.health.v1;
 
